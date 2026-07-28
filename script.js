@@ -898,7 +898,11 @@ function openEnvelope() {
 /* ------------------------------------------------------------
    THE WRITING ANIMATION — fountain-pen typewriter, line by line
 ------------------------------------------------------------ */
-const LETTER_LINES = ['[YOUR LETTER GOES HERE]'];
+const LETTER_LINES = [
+  'Dear anurag',
+  'You have been my best friend since the day we met. I know your definition for a best friend is different, but for me it’s who I feel safest with, who I laugh the most with, who I have my life’s best moments with. Your love personified anurag. You are everything any girl would ever want. But not any girl. ME. You are everything and more. But I dont just love you because of how much you love me, I love you because of the person you are meri Jaan. Anyone would be lucky to be close to you. I know I am. Lucky as fuck. This is one of the many love letters I will be writing. I LOVE you meri Jaan',
+  'Happy birthday my marshmallow<3',
+];
 
 function startLetterDecorations() {
   spawnLetterSparkles();
