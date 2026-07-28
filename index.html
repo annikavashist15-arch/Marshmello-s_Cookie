@@ -7,7 +7,7 @@
 
   <!-- Cute rounded fonts: Fredoka for the storybook display type, Quicksand for soft body text -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -90,6 +90,55 @@
              onerror="this.onerror=null; this.src=''; this.classList.add('photo-fallback');" />
       </button>
       <h1 id="final-message">My Favorite Person <span class="heart-emoji">❤️</span></h1>
+    </div>
+
+    <!-- ============================================================
+         CHAPTER TWO
+         Warm sunset wash + zoom happen inside #scene so the whole
+         act-one scene dims/zooms together; the envelope + letter
+         live in a fixed overlay on top so they're unaffected by
+         the scene's zoom transform.
+    ============================================================ -->
+    <div id="sunset-overlay"></div>
+
+  </div>
+
+  <div id="golden-particles" aria-hidden="true"></div>
+
+  <div id="chapter-two" aria-hidden="true">
+
+    <div id="envelope-wrap">
+      <div id="envelope">
+        <div class="env-shadow"></div>
+        <div class="env-back"></div>
+        <div class="env-pocket-left"></div>
+        <div class="env-pocket-right"></div>
+        <div class="env-flap">
+          <div class="wax-seal">
+            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="27" fill="#8a1f2b" />
+              <circle cx="30" cy="30" r="27" fill="url(#waxSheen)" />
+              <path d="M30 20 C 24 12, 12 16, 12 25 C 12 33, 20 37, 30 44 C 40 37, 48 33, 48 25 C 48 16, 36 12, 30 20 Z"
+                    fill="#6e1520" opacity="0.85" />
+              <defs>
+                <radialGradient id="waxSheen" cx="35%" cy="30%" r="75%">
+                  <stop offset="0%" stop-color="#c94a55" stop-opacity="0.9" />
+                  <stop offset="55%" stop-color="#8a1f2b" stop-opacity="0.2" />
+                  <stop offset="100%" stop-color="#5c0f18" stop-opacity="0.5" />
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="letter-wrap">
+      <div id="letter">
+        <div id="letter-text"><span id="ink-cursor"></span></div>
+        <div id="letter-signature">Love,<br />Cookie</div>
+      </div>
+      <div id="letter-fx"></div>
     </div>
 
   </div>

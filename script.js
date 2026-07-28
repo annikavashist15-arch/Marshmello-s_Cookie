@@ -346,6 +346,8 @@ function revealPhoto() {
       heartBurst(orbit, 10, 70);
       setTimeout(() => message.classList.add('shown'), 300);
       setTimeout(startPigParade, 900);
+      // Let the pigs enjoy the photo for a while, then quietly move on to chapter two
+      setTimeout(beginChapterTwoTransition, 900 + 10000);
     },
   });
 }
@@ -355,6 +357,8 @@ function revealPhoto() {
       the photo, leans in for a kiss, blushes, then either lingers,
       wanders off, or comes back later for another kiss.
 ================================================================== */
+
+let actOneEnded = false; // flips true when chapter two begins; pigs stop starting new moves
 
 const PIG_COUNT = vw() < 640 ? 6 : 10;
 const pigLayer = document.getElementById('pig-layer');
@@ -557,6 +561,7 @@ function walkTo(pig, x, y, onArrive) {
 }
 
 function decidePigNextMove(pig, slot) {
+  if (actOneEnded) return;
   if (pig.dataset.smoocher === 'true') {
     // The dedicated smoocher: steps back for a breath, then comes
     // straight back in for another kiss, over and over.
@@ -606,11 +611,13 @@ function decidePigNextMove(pig, slot) {
 }
 
 function sendPigToKiss(pig) {
+  if (actOneEnded) return;
   const slot = claimSlot();
   walkTo(pig, slot.x, slot.y, () => kissPhoto(pig, slot));
 }
 
 function spawnPigEntry(index) {
+  if (actOneEnded) return;
   const pig = createPig(index);
   const entryType = choice(['left', 'right', 'grass']);
   const grassTop = rand(vh() * 0.68, vh() * 0.9);
@@ -682,6 +689,395 @@ function initMusic() {
 }
 
 /* ==================================================================
+   7. CHAPTER TWO — the pigs settle down, the sky turns golden, and
+      a vintage letter drifts down, opens, and writes itself.
+      Everything below lives on this same page/scroll position so
+      the music widget is never touched, let alone interrupted.
+================================================================== */
+
+let goldenParticleTimer = null;
+
+function spawnGoldenParticle() {
+  const layer = document.getElementById('golden-particles');
+  const p = document.createElement('div');
+  p.className = 'golden-particle';
+  const size = rand(4, 9);
+  p.style.width = `${size}px`;
+  p.style.height = `${size}px`;
+  p.style.left = `${rand(0, 100)}%`;
+  p.style.top = `${rand(20, 100)}%`;
+  layer.appendChild(p);
+  gsap.fromTo(
+    p,
+    { opacity: 0, x: 0, y: 0 },
+    {
+      opacity: rand(0.5, 0.9),
+      x: rand(-50, 50),
+      y: -rand(80, 180),
+      duration: rand(4.5, 7.5),
+      ease: 'sine.out',
+      onComplete: () => gsap.to(p, { opacity: 0, duration: 1, onComplete: () => p.remove() }),
+    }
+  );
+}
+
+function startGoldenParticles() {
+  spawnGoldenParticle();
+  goldenParticleTimer = setInterval(spawnGoldenParticle, 260);
+}
+
+/* Gently sends any butterflies still fluttering around off into the distance */
+function flyAwayButterflies() {
+  document.querySelectorAll('.critter.butterfly').forEach((el) => {
+    gsap.killTweensOf(el);
+    gsap.to(el, {
+      top: '-10%',
+      left: `+=${rand(-60, 60)}`,
+      opacity: 0,
+      duration: rand(1.6, 2.4),
+      ease: 'power1.in',
+      onComplete: () => el.remove(),
+    });
+  });
+}
+
+/* Freezes every pig exactly where it stands, mid-scene */
+function settlePigs() {
+  actOneEnded = true;
+  document.querySelectorAll('.pig').forEach((pig) => {
+    if (pig._bobTween) pig._bobTween.kill();
+    gsap.killTweensOf(pig);
+    pig.classList.remove('walking', 'kissing', 'blushing', 'excited');
+    gsap.set(pig, { y: 0 });
+  });
+}
+
+/* ------------------------------------------------------------
+   TRANSITION: quiet down, golden sunset, gentle zoom, photo fades
+------------------------------------------------------------ */
+function beginChapterTwoTransition() {
+  const tl = gsap.timeline();
+
+  tl.call(() => {
+    settlePigs();
+    flyAwayButterflies();
+    startGoldenParticles();
+  })
+    .to('#sunset-overlay', { opacity: 1, duration: 4, ease: 'sine.inOut' }, 0)
+    .to('#scene', { scale: 1.12, duration: 5.5, ease: 'sine.inOut', transformOrigin: '50% 45%' }, 0)
+    .to('#critters', { opacity: 0, duration: 2 }, 1.4)
+    .to('#ambient-particles', { opacity: 0, duration: 2 }, 1.4)
+    .to('#photo-stage', { opacity: 0, scale: 0.94, duration: 2.2, ease: 'power1.inOut' }, 1.8)
+    .call(revealEnvelope, null, 4.6);
+}
+
+/* ------------------------------------------------------------
+   ENVELOPE: floats down from the top, lands with a soft bounce
+------------------------------------------------------------ */
+let envelopeIdleTween = null;
+
+function revealEnvelope() {
+  const chapterTwo = document.getElementById('chapter-two');
+  chapterTwo.classList.add('active');
+  gsap.to(chapterTwo, { opacity: 1, duration: 1.2, ease: 'sine.inOut' });
+
+  const wrap = document.getElementById('envelope-wrap');
+  gsap.set(wrap, { opacity: 1, y: -(vh() * 1.3), rotation: -8 });
+
+  gsap.to(wrap, {
+    y: 0,
+    rotation: 0,
+    duration: 1.9,
+    ease: 'power2.in',
+    onComplete: () => {
+      // a soft little bounce as it touches down
+      gsap.to(wrap, {
+        y: -16,
+        duration: 0.18,
+        ease: 'power1.out',
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => {
+          envelopeIdleTween = gsap.to('#envelope', {
+            y: -5,
+            duration: 2.2,
+            ease: 'sine.inOut',
+            yoyo: true,
+            repeat: -1,
+          });
+          document.getElementById('envelope').addEventListener('click', openEnvelope, { once: true });
+        },
+      });
+    },
+  });
+}
+
+/* Tiny synthesized paper-crinkle sound; wrapped safely since some
+   browsers block audio until a user gesture — the envelope click
+   itself counts as that gesture. */
+function playPaperSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const duration = 0.5;
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2200;
+    filter.Q.value = 0.7;
+    const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(0.18, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+    noise.connect(filter).connect(gainNode).connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + duration);
+  } catch (e) {
+    /* silently skip sound if the browser blocks it */
+  }
+}
+
+function waxCrumbBurst(cx, cy) {
+  for (let i = 0; i < 8; i++) {
+    const crumb = document.createElement('div');
+    crumb.className = 'wax-crumb';
+    crumb.style.left = `${cx}px`;
+    crumb.style.top = `${cy}px`;
+    document.body.appendChild(crumb);
+    gsap.to(crumb, {
+      x: rand(-40, 40),
+      y: rand(20, 70),
+      rotation: rand(0, 360),
+      opacity: 0,
+      duration: rand(0.6, 1),
+      ease: 'power1.in',
+      onComplete: () => crumb.remove(),
+    });
+  }
+}
+
+/* ------------------------------------------------------------
+   OPENING: seal cracks, flap lifts, letter slides out + unfolds
+------------------------------------------------------------ */
+function openEnvelope() {
+  if (envelopeIdleTween) envelopeIdleTween.kill();
+  gsap.set('#envelope', { y: 0 });
+  playPaperSound();
+
+  const seal = document.querySelector('.wax-seal');
+  const rect = seal.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  const tl = gsap.timeline();
+
+  tl.to(seal, { scale: 1.08, duration: 0.12, ease: 'power1.out' })
+    .call(() => waxCrumbBurst(cx, cy))
+    .to(seal, { scale: 0.3, opacity: 0, rotation: 25, duration: 0.35, ease: 'power1.in' })
+    .to('.env-flap', { rotateX: -168, duration: 0.9, ease: 'power2.inOut', transformOrigin: 'top center' }, '-=0.1')
+    .call(() => playPaperSound())
+    // slides out partway, then pauses...
+    .to('#letter-wrap', { opacity: 1, y: -10, scale: 0.92, duration: 0.6, ease: 'power2.out' }, '+=0.05')
+    .to({}, { duration: 0.45 }) // the halfway pause
+    // ...then unfolds fully into view
+    .to('#letter-wrap', {
+      scale: 1,
+      y: -35,
+      duration: 0.9,
+      ease: 'power2.out',
+      onComplete: startLetterDecorations,
+    });
+}
+
+/* ------------------------------------------------------------
+   THE WRITING ANIMATION — fountain-pen typewriter, line by line
+------------------------------------------------------------ */
+const LETTER_LINES = ['[YOUR LETTER GOES HERE]'];
+
+function startLetterDecorations() {
+  spawnLetterSparkles();
+  setTimeout(spawnLetterButterfly, 900);
+  setTimeout(sendPigToKissLetter, 1600);
+  writeLetter();
+}
+
+function writeLetter() {
+  const textEl = document.getElementById('letter-text');
+  const cursor = document.getElementById('ink-cursor');
+  let lineIndex = 0;
+  let charIndex = 0;
+  let written = '';
+
+  function typeNext() {
+    if (lineIndex >= LETTER_LINES.length) {
+      cursor.classList.add('done');
+      finishLetter();
+      return;
+    }
+    const line = LETTER_LINES[lineIndex];
+    if (charIndex <= line.length) {
+      written = LETTER_LINES.slice(0, lineIndex).join('\n') +
+        (lineIndex > 0 ? '\n' : '') +
+        line.slice(0, charIndex);
+      textEl.textContent = written;
+      textEl.appendChild(cursor);
+      charIndex++;
+      setTimeout(typeNext, rand(35, 85));
+    } else {
+      lineIndex++;
+      charIndex = 0;
+      setTimeout(typeNext, rand(300, 500));
+    }
+  }
+  typeNext();
+}
+
+function finishLetter() {
+  setTimeout(() => {
+    document.getElementById('letter-signature').classList.add('shown');
+    setTimeout(peekPigSequence, 900);
+  }, 400);
+}
+
+/* Small sparkles drifting up around the letter while it's being read/written */
+let letterSparkleTimer = null;
+function spawnLetterSparkles() {
+  const fx = document.getElementById('letter-fx');
+  const spawn = () => {
+    const s = document.createElement('div');
+    s.className = 'letter-sparkle';
+    s.style.left = `${rand(-4, 104)}%`;
+    s.style.top = `${rand(-4, 104)}%`;
+    fx.appendChild(s);
+    setTimeout(() => s.remove(), 2700);
+  };
+  spawn();
+  letterSparkleTimer = setInterval(spawn, 550);
+  setTimeout(() => clearInterval(letterSparkleTimer), 14000);
+}
+
+/* An occasional butterfly lands on a corner of the letter, folds its wings, then flits off */
+function spawnLetterButterfly() {
+  const fx = document.getElementById('letter-fx');
+  const corners = [
+    { top: '2%', left: '4%' },
+    { top: '2%', right: '4%' },
+    { top: '92%', left: '6%' },
+    { top: '90%', right: '6%' },
+  ];
+  const corner = choice(corners);
+  const el = document.createElement('div');
+  el.className = 'letter-butterfly landed';
+  Object.assign(el.style, corner);
+  const color = choice(['#ffb3d9', '#ffd18f', '#b9a4ff']);
+  el.innerHTML = `<svg viewBox="0 0 20 16">
+    <path d="M10 8 C6 0, 0 1, 0 5 C0 9, 6 9, 10 8 Z" fill="${color}"/>
+    <path d="M10 8 C14 0, 20 1, 20 5 C20 9, 14 9, 10 8 Z" fill="${color}"/>
+    <line x1="10" y1="3" x2="10" y2="13" stroke="#5a4a3a" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`;
+  fx.appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+  if (Math.random() < 0.6) setTimeout(spawnLetterButterfly, rand(4000, 7000));
+}
+
+/* One piggy waddles over and gives the side of the letter a little kiss.
+   Note: by this point #scene has been zoomed (scale) for the chapter-two
+   transition, so this pig must NOT live inside #pig-layer (which is
+   inside #scene and would inherit that scale, throwing off its
+   coordinates). It's appended straight to document.body instead, just
+   like the kiss-heart/sparkle bursts already do elsewhere in this file. */
+function sendPigToKissLetter() {
+  const letter = document.getElementById('letter');
+  if (!letter) return;
+  const pig = document.createElement('div');
+  pig.className = 'pig walking';
+  pig.innerHTML = pigSVG(999, false);
+  document.body.appendChild(pig);
+  const rect = letter.getBoundingClientRect();
+  const fromLeft = Math.random() < 0.5;
+  const startX = fromLeft ? -80 : vw() + 80;
+  const startY = rect.top + rect.height * rand(0.35, 0.65);
+  pig.style.left = `${startX}px`;
+  pig.style.top = `${startY}px`;
+
+  const targetX = fromLeft ? rect.left - 20 : rect.right - 44;
+  const targetY = startY;
+
+  walkTo(pig, targetX, targetY, () => {
+    pig.classList.remove('walking');
+    if (pig._bobTween) pig._bobTween.kill();
+    gsap.set(pig, { y: 0 });
+    pig.dataset.facing = fromLeft ? 'right' : 'left';
+    pig.style.transform = fromLeft ? 'scaleX(1)' : 'scaleX(-1)';
+    pig.classList.add('kissing');
+
+    const kissX = fromLeft ? rect.left + 6 : rect.right - 6;
+    const kissY = rect.top + rect.height * rand(0.4, 0.6);
+    const lungeX = fromLeft ? targetX + 26 : targetX - 26;
+
+    const tl = gsap.timeline();
+    tl.to(pig, { left: lungeX, duration: 0.3, ease: 'power2.in' })
+      .call(() => {
+        stampLetterLipMark(kissX, kissY, rect);
+        pig.classList.add('blushing');
+        spawnKissHearts(kissX, kissY);
+      })
+      .to(pig, { left: targetX, duration: 0.4, ease: 'power2.out' })
+      .call(() => {
+        pig.classList.remove('kissing');
+        setTimeout(() => {
+          const exitX = fromLeft ? -80 : vw() + 80;
+          walkTo(pig, exitX, targetY, () => pig.remove());
+        }, 1200);
+      });
+  });
+}
+
+function stampLetterLipMark(pageX, pageY, letterRect) {
+  const fx = document.getElementById('letter-fx');
+  const mark = document.createElement('div');
+  mark.className = 'letter-lip-mark';
+  // fx layer is inset -30px around #letter-wrap, so offset by 30
+  mark.style.left = `${pageX - letterRect.left + 30}px`;
+  mark.style.top = `${pageY - letterRect.top + 30}px`;
+  mark.style.setProperty('--rot', `${rand(-25, 25)}deg`);
+  mark.innerHTML = lipMarkSVG();
+  fx.appendChild(mark);
+  gsap.fromTo(mark, { scale: 0, opacity: 0 }, { scale: 1, opacity: 0.85, duration: 0.25, ease: 'back.out(2)' });
+}
+
+/* Ending: shy little pigs peek out from behind the letter, giggle, then hide */
+function peekPigSequence() {
+  const fx = document.getElementById('letter-fx');
+  const pig = document.createElement('div');
+  pig.className = 'peek-pig';
+  pig.innerHTML = pigSVG(1, false);
+  fx.appendChild(pig);
+  gsap.set(pig, { y: 44, opacity: 0 }); // starts tucked down out of sight
+
+  const tl = gsap.timeline();
+  // peek up shyly
+  tl.to(pig, { y: 6, opacity: 1, duration: 0.7, ease: 'back.out(1.4)' })
+    .to(pig, {}, '+=0.6') // a beat, smiling
+    // duck back down
+    .to(pig, { y: 40, duration: 0.4, ease: 'power1.in' })
+    .to(pig, {}, '+=0.3')
+    // giggle out, run around, and hide shyly
+    .to(pig, { y: 4, opacity: 1, duration: 0.4, ease: 'back.out(1.4)' })
+    .call(() => pig.classList.add('excited'))
+    .to(pig, { x: -30, duration: 0.35, ease: 'sine.inOut' })
+    .to(pig, { x: 30, duration: 0.5, ease: 'sine.inOut' })
+    .to(pig, { x: 0, duration: 0.35, ease: 'sine.inOut' })
+    .call(() => pig.classList.remove('excited'))
+    .to(pig, { y: 50, opacity: 0, duration: 0.6, ease: 'power1.in', onComplete: () => pig.remove() });
+}
+
+/* ==================================================================
    INIT
 ================================================================== */
 window.addEventListener('DOMContentLoaded', () => {
@@ -693,4 +1089,7 @@ window.addEventListener('DOMContentLoaded', () => {
   buildAmbientParticles();
   initInteractions();
   initMusic();
+
+  // Chapter two starts hidden/collapsed until beginChapterTwoTransition runs
+  gsap.set('#letter-wrap', { scale: 0.85, y: 30 });
 });

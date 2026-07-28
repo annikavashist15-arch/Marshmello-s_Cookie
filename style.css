@@ -23,6 +23,17 @@
 
   --font-display: 'Fredoka', sans-serif;
   --font-body: 'Quicksand', sans-serif;
+
+  /* Chapter two: warm vintage-letter palette */
+  --sunset-1: #ffd9a0;
+  --sunset-2: #ff9f6b;
+  --sunset-3: #e2694f;
+  --paper-cream: #f2e6c8;
+  --paper-cream-dark: #e6d4a8;
+  --paper-shadow: #b89a63;
+  --wax: #8a1f2b;
+  --gold-particle: #ffdd88;
+  --font-hand: 'Caveat', cursive;
 }
 
 * { box-sizing: border-box; }
@@ -604,4 +615,314 @@ button {
   #photo-frame { width: 190px; height: 190px; }
   #final-message { font-size: 1.3rem; }
   .pig { width: 46px; height: 40px; }
+}
+
+/* ==================================================================
+   CHAPTER TWO
+   Sunset transition -> golden particles -> envelope -> letter.
+   The envelope/letter overlay sits in a fixed layer above the whole
+   scene so it is unaffected by the act-one "camera zoom" on #scene.
+================================================================== */
+
+/* Warm sunset wash, painted over the whole act-one scene */
+#sunset-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(120% 90% at 50% 100%, rgba(255, 159, 107, 0.55) 0%, rgba(255, 217, 160, 0.35) 45%, rgba(226, 105, 79, 0.15) 75%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 217, 160, 0.25) 0%, rgba(255, 159, 107, 0.55) 55%, rgba(226, 105, 79, 0.6) 100%);
+  mix-blend-mode: multiply;
+}
+
+/* Golden drifting particles, fixed over everything while chapter two settles in */
+#golden-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  overflow: hidden;
+}
+.golden-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6d9 0%, var(--gold-particle) 55%, rgba(255, 221, 136, 0) 75%);
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(255, 221, 136, 0.8));
+}
+
+/* Fixed overlay holding the envelope + letter, floats above everything */
+#chapter-two {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+}
+#chapter-two.active { pointer-events: auto; }
+/* Both children share the same grid cell so they sit centered
+   and overlapping; GSAP then owns their transforms from a clean,
+   percentage-free base (no fighting with CSS translate centering). */
+#envelope-wrap, #letter-wrap { grid-area: 1 / 1; }
+
+/* ------------------------------------------------------------
+   ENVELOPE
+------------------------------------------------------------ */
+#envelope-wrap {
+  position: relative;
+  width: 320px;
+  height: 210px;
+  perspective: 1300px;
+  opacity: 0;
+}
+#envelope {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+#envelope:hover .env-flap { filter: brightness(1.03); }
+
+.env-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -22px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(90, 55, 30, 0.38) 0%, rgba(90, 55, 30, 0) 72%);
+  transform: scaleY(0.5);
+}
+
+.env-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background:
+    radial-gradient(120% 100% at 15% 10%, rgba(150, 110, 60, 0.16) 0%, transparent 45%),
+    radial-gradient(90% 90% at 90% 95%, rgba(150, 110, 60, 0.18) 0%, transparent 50%),
+    linear-gradient(155deg, #f4e8ca 0%, var(--paper-cream) 45%, var(--paper-cream-dark) 100%);
+  box-shadow:
+    0 16px 30px rgba(90, 55, 20, 0.32),
+    inset 0 0 0 1px rgba(140, 100, 55, 0.15);
+}
+/* Worn/aged edge texture: soft irregular brown blotches + grain */
+.env-back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background:
+    radial-gradient(3px 3px at 8% 20%, rgba(120, 85, 45, 0.22) 0%, transparent 100%),
+    radial-gradient(4px 4px at 92% 15%, rgba(120, 85, 45, 0.2) 0%, transparent 100%),
+    radial-gradient(3px 3px at 15% 88%, rgba(120, 85, 45, 0.2) 0%, transparent 100%),
+    radial-gradient(5px 5px at 85% 90%, rgba(120, 85, 45, 0.22) 0%, transparent 100%),
+    radial-gradient(2px 2px at 50% 6%, rgba(120, 85, 45, 0.18) 0%, transparent 100%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Classic envelope pocket folds, forming the little side triangles */
+.env-pocket-left,
+.env-pocket-right {
+  position: absolute;
+  top: 0;
+  width: 52%;
+  height: 100%;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.25), rgba(150, 110, 60, 0.08));
+  opacity: 0.55;
+}
+.env-pocket-left {
+  left: 0;
+  clip-path: polygon(0 0, 0 100%, 100% 50%);
+}
+.env-pocket-right {
+  right: 0;
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}
+
+.env-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(0 0, 100% 0, 50% 64%);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 55%),
+    linear-gradient(165deg, #f6ecd2 0%, var(--paper-cream) 50%, var(--paper-cream-dark) 100%);
+  box-shadow: inset 0 -6px 10px -6px rgba(120, 85, 45, 0.35);
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+.wax-seal {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 3px 4px rgba(70, 15, 20, 0.45));
+}
+.wax-seal svg { width: 100%; height: 100%; }
+.wax-crumb {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--wax);
+  pointer-events: none;
+  z-index: 65;
+}
+
+/* ------------------------------------------------------------
+   LETTER
+------------------------------------------------------------ */
+#letter-wrap {
+  position: relative;
+  width: 380px;
+  opacity: 0;
+  z-index: 55;
+}
+
+#letter {
+  position: relative;
+  min-height: 420px;
+  padding: 42px 38px 34px;
+  border-radius: 3px;
+  background:
+    radial-gradient(140% 90% at 10% 0%, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+    radial-gradient(100% 100% at 95% 100%, rgba(150, 110, 60, 0.14) 0%, transparent 45%),
+    radial-gradient(70% 60% at 85% 15%, rgba(150, 110, 60, 0.1) 0%, transparent 60%),
+    linear-gradient(175deg, #f7edd4 0%, var(--paper-cream) 55%, var(--paper-cream-dark) 100%);
+  box-shadow:
+    0 22px 40px rgba(90, 55, 20, 0.28),
+    0 4px 10px rgba(90, 55, 20, 0.18);
+  transform-origin: top center;
+  rotate: -0.6deg;
+}
+
+/* Curled corners: small folded triangles at the bottom edge */
+#letter::before,
+#letter::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, transparent 50%, var(--paper-shadow) 50%);
+  box-shadow: -2px 2px 5px rgba(90, 55, 20, 0.25);
+  opacity: 0.7;
+}
+#letter::before { left: 0; border-radius: 0 0 0 3px; transform: rotate(0deg); }
+#letter::after {
+  right: 0;
+  transform: scaleX(-1);
+  border-radius: 0 0 0 3px;
+}
+
+#letter-text {
+  font-family: var(--font-hand);
+  font-size: 1.65rem;
+  line-height: 1.75;
+  color: #4a3624;
+  white-space: pre-wrap;
+  min-height: 220px;
+}
+
+#ink-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.15em;
+  vertical-align: text-bottom;
+  background: #4a3624;
+  margin-left: 1px;
+  animation: ink-blink 0.85s step-end infinite;
+}
+#ink-cursor.done { display: none; }
+@keyframes ink-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+#letter-signature {
+  margin-top: 22px;
+  font-family: var(--font-hand);
+  font-weight: 600;
+  font-size: 1.85rem;
+  text-align: right;
+  color: #4a3624;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+#letter-signature.shown { opacity: 1; transform: translateY(0); }
+
+#letter-fx {
+  position: absolute;
+  inset: -30px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Small sparkles + landing butterflies scoped to the letter */
+.letter-sparkle {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle, #fff 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  animation: sparkle-float 2.6s ease-out forwards;
+}
+.letter-butterfly {
+  position: absolute;
+  width: 20px;
+  height: 16px;
+  opacity: 0;
+}
+.letter-butterfly svg { width: 100%; height: 100%; }
+.letter-butterfly.landed { animation: butterfly-land 3.6s ease-in-out forwards; }
+@keyframes butterfly-land {
+  0% { opacity: 0; transform: translateY(-14px) scale(0.6); }
+  15% { opacity: 1; transform: translateY(0) scale(1); }
+  85% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.7); }
+}
+.letter-butterfly.landed svg { animation: wing-flap 0.6s ease-in-out 6, none; }
+
+/* Little lip mark left on the letter's edge by the kissing pig */
+.letter-lip-mark {
+  position: absolute;
+  width: 22px;
+  height: 15px;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  filter: drop-shadow(0 1px 1px rgba(120, 20, 50, 0.15));
+}
+.letter-lip-mark svg { width: 100%; height: 100%; }
+
+/* Pig(s) peeking from behind the bottom of the letter */
+.peek-pig {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 54px;
+  height: 48px;
+  margin-left: -27px;
+  z-index: 2;
+}
+.peek-pig svg { width: 100%; height: 100%; overflow: visible; }
+
+@media (max-width: 640px) {
+  #envelope-wrap { width: 250px; height: 170px; }
+  .wax-seal { width: 38px; height: 38px; }
+  #letter-wrap { width: 88vw; max-width: 340px; }
+  #letter { padding: 32px 24px 26px; min-height: 340px; }
+  #letter-text { font-size: 1.4rem; min-height: 160px; }
+  #letter-signature { font-size: 1.6rem; }
 }
