@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Favorite Person</title>
+
+  <!-- Cute rounded fonts: Fredoka for the storybook display type, Quicksand for soft body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       THE SCENE
+       A peaceful cartoon field: sky, sun, clouds, hills, grass,
+       flowers, and little critters. Everything here is built with
+       CSS shapes/gradients + inline SVG so the page works even
+       before real art assets are dropped in.
+  ============================================================ -->
+  <div id="scene">
+
+    <!-- Sky + sun -->
+    <div id="sky">
+      <div id="sun"></div>
+      <div id="rainbow"></div>
+      <div id="clouds"></div>
+      <div id="birds"></div>
+    </div>
+
+    <!-- Rolling hills, behind the grass -->
+    <div id="hills">
+      <div class="hill hill-back"></div>
+      <div class="hill hill-front"></div>
+    </div>
+
+    <!-- Grass layer, flowers + critters live on top of this -->
+    <div id="grass">
+      <div id="flowers"></div>
+      <div id="critters"></div>
+    </div>
+
+    <!-- Pigs live in their own full-scene layer so their screen-space
+         coordinates line up with getBoundingClientRect() math in JS -->
+    <div id="pig-layer"></div>
+
+    <!-- Floating ambient sparkles/petals over the whole scene -->
+    <div id="ambient-particles"></div>
+
+    <!-- The little hero of act one -->
+    <div id="cookie-wrap">
+      <button id="cookie" aria-label="Tap the fortune cookie">
+        <svg viewBox="0 0 200 140" id="cookie-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left half -->
+          <g id="cookie-left">
+            <path d="M100 15
+                     C 40 15, 10 55, 12 85
+                     C 14 112, 45 128, 98 128
+                     C 98 90, 98 50, 100 15 Z"
+                  fill="#E7B978" stroke="#C99756" stroke-width="3" />
+          </g>
+          <!-- Right half -->
+          <g id="cookie-right">
+            <path d="M100 15
+                     C 160 15, 190 55, 188 85
+                     C 186 112, 155 128, 102 128
+                     C 102 90, 102 50, 100 15 Z"
+                  fill="#F1C98B" stroke="#C99756" stroke-width="3" />
+          </g>
+          <!-- Cute face, hidden once cookie starts cracking -->
+          <g id="cookie-face">
+            <circle cx="82" cy="70" r="4.5" fill="#5A3A1A" />
+            <circle cx="118" cy="70" r="4.5" fill="#5A3A1A" />
+            <path d="M82 88 Q100 100 118 88" stroke="#5A3A1A" stroke-width="3.5" fill="none" stroke-linecap="round" />
+            <ellipse cx="70" cy="82" rx="6" ry="3.5" fill="#FFAFC0" opacity="0.7" />
+            <ellipse cx="130" cy="82" rx="6" ry="3.5" fill="#FFAFC0" opacity="0.7" />
+          </g>
+        </svg>
+      </button>
+      <p id="cookie-hint">tap the cookie ✨</p>
+    </div>
+
+    <!-- Act two: the photo, revealed after the cookie cracks -->
+    <div id="photo-stage">
+      <div id="hearts-orbit"></div>
+      <button id="photo-frame" aria-label="Our picture">
+        <img id="photo" src="images/anurag.jpg" alt="My favorite person"
+             onerror="this.onerror=null; this.src=''; this.classList.add('photo-fallback');" />
+      </button>
+      <h1 id="final-message">My Favorite Person <span class="heart-emoji">❤️</span></h1>
+    </div>
+
+  </div>
+
+  <!-- Floating music control -->
+  <div id="music-widget">
+    <audio id="bg-music" src="music/music.mp3" loop preload="none"></audio>
+    <button id="music-btn" aria-label="Play music">
+      <svg id="music-icon-play" viewBox="0 0 24 24" width="20" height="20"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg id="music-icon-pause" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+    </button>
+    <button id="mute-btn" aria-label="Mute music">
+      <svg id="mute-icon-on" viewBox="0 0 24 24" width="18" height="18"><path d="M3 10v4h4l5 5V5L7 10H3z" fill="currentColor"/></svg>
+      <svg id="mute-icon-off" viewBox="0 0 24 24" width="18" height="18" style="display:none"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2L19 9.5l-1-1-2.5 2.5L13 8.5l-1 1 2.5 2.5L12 14.5l1 1 2.5-2.5L18 15.5l1-1z" fill="currentColor"/></svg>
+    </button>
+  </div>
+
+  <!-- GSAP for the cinematic bits (cookie crack, pig choreography, bursts) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
