@@ -525,6 +525,14 @@ button {
 
 .pig.smoocher .bow { filter: drop-shadow(0 1px 1px rgba(120, 20, 50, 0.2)); }
 
+/* Chapter two: pigs go fully still — this overrides the idle ear-wiggle,
+   tail-curl, and blink loops, which otherwise run unconditionally
+   regardless of the walking/kissing classes. */
+.pig.frozen,
+.pig.frozen * {
+  animation-play-state: paused !important;
+}
+
 .pig.excited { animation: pig-jump 0.5s ease-in-out infinite; }
 @keyframes pig-jump {
   0%, 100% { transform: translateY(0); }

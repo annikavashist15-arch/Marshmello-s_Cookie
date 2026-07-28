@@ -748,6 +748,7 @@ function settlePigs() {
     if (pig._bobTween) pig._bobTween.kill();
     gsap.killTweensOf(pig);
     pig.classList.remove('walking', 'kissing', 'blushing', 'excited');
+    pig.classList.add('frozen');
     gsap.set(pig, { y: 0 });
   });
 }
