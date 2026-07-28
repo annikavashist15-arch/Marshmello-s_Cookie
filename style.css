@@ -544,15 +544,34 @@ button {
 /* ==================================================================
    MUSIC WIDGET
 ================================================================== */
-#music-widget {
+#spotify-widget {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  display: flex;
-  gap: 10px;
   z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
-#music-widget button {
+
+#spotify-player {
+  width: 300px;
+  max-width: calc(100vw - 40px);
+  transform-origin: bottom right;
+  transform: scale(0.85) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  filter: drop-shadow(0 12px 24px rgba(90, 60, 20, 0.25));
+}
+#spotify-widget.open #spotify-player {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#spotify-toggle {
   width: 46px;
   height: 46px;
   border-radius: 50%;
@@ -564,12 +583,17 @@ button {
   box-shadow: 0 6px 16px rgba(90, 60, 20, 0.18);
   backdrop-filter: blur(4px);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
-#music-widget button:hover { transform: scale(1.08); }
-#music-btn.playing { animation: note-bob 1.4s ease-in-out infinite; }
+#spotify-toggle:hover { transform: scale(1.08); }
+#spotify-widget.open #spotify-toggle { animation: note-bob 1.4s ease-in-out infinite; }
 @keyframes note-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+@media (max-width: 640px) {
+  #spotify-player { width: 260px; }
 }
 
 /* ==================================================================

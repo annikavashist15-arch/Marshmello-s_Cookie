@@ -674,35 +674,10 @@ function initInteractions() {
 ================================================================== */
 
 function initMusic() {
-  const audio = document.getElementById('bg-music');
-  const playBtn = document.getElementById('music-btn');
-  const muteBtn = document.getElementById('mute-btn');
-  const playIcon = document.getElementById('music-icon-play');
-  const pauseIcon = document.getElementById('music-icon-pause');
-  const muteOnIcon = document.getElementById('mute-icon-on');
-  const muteOffIcon = document.getElementById('mute-icon-off');
-
-  audio.autoplay = false;
-  audio.muted = false;
-
-  playBtn.addEventListener('click', () => {
-    if (audio.paused) {
-      audio.play().catch(() => { /* file may not exist yet — fail quietly */ });
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
-      playBtn.classList.add('playing');
-    } else {
-      audio.pause();
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
-      playBtn.classList.remove('playing');
-    }
-  });
-
-  muteBtn.addEventListener('click', () => {
-    audio.muted = !audio.muted;
-    muteOnIcon.style.display = audio.muted ? 'none' : 'block';
-    muteOffIcon.style.display = audio.muted ? 'block' : 'none';
+  const widget = document.getElementById('spotify-widget');
+  const toggle = document.getElementById('spotify-toggle');
+  toggle.addEventListener('click', () => {
+    widget.classList.toggle('open');
   });
 }
 

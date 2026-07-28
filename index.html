@@ -94,16 +94,24 @@
 
   </div>
 
-  <!-- Floating music control -->
-  <div id="music-widget">
-    <audio id="bg-music" src="music/music.mp3" loop preload="none"></audio>
-    <button id="music-btn" aria-label="Play music">
-      <svg id="music-icon-play" viewBox="0 0 24 24" width="20" height="20"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-      <svg id="music-icon-pause" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
-    </button>
-    <button id="mute-btn" aria-label="Mute music">
-      <svg id="mute-icon-on" viewBox="0 0 24 24" width="18" height="18"><path d="M3 10v4h4l5 5V5L7 10H3z" fill="currentColor"/></svg>
-      <svg id="mute-icon-off" viewBox="0 0 24 24" width="18" height="18" style="display:none"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2L19 9.5l-1-1-2.5 2.5L13 8.5l-1 1 2.5 2.5L12 14.5l1 1 2.5-2.5L18 15.5l1-1z" fill="currentColor"/></svg>
+  <!-- Floating Spotify player: starts collapsed as a small music-note
+       button, expands into the real Spotify embed when tapped -->
+  <div id="spotify-widget">
+    <div id="spotify-player">
+      <iframe
+        data-testid="embed-iframe"
+        style="border-radius: 12px"
+        src="https://open.spotify.com/embed/track/5iFwAOB2TFkPJk8sMlxP8g?utm_source=generator&si=c4b853e088bc4397"
+        width="100%"
+        height="152"
+        frameBorder="0"
+        allowfullscreen=""
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy">
+      </iframe>
+    </div>
+    <button id="spotify-toggle" aria-label="Toggle music player">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
     </button>
   </div>
 
